@@ -27,4 +27,16 @@ app.post("/tweets", (req, res) => {
     res.status(201).send("OK");
 });
 
+app.get("/tweets", (req, res) => {
+    const lastTweets = tweetsArray.slice(-10); // devolve vazio caso a lista esteja vazia
+
+    let mergeArray = [];
+    lastTweets.forEach(t => {
+        const userObj = usersArray.find(u => u.username === t.username);
+        mergeArray.push({ ...userObj, ...t, }); // o campo repetido (username) é sobreescrito
+    });
+
+    res.send(mergeArray);
+});
+
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
