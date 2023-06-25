@@ -36,18 +36,18 @@ app.post("/sign-up", (req, res) => {
 });
 
 app.post("/tweets", (req, res) => {
-    const { username, tweet } = req.body;
-    //const { username } = req.headers.user;
+    const { tweet } = req.body;
+    const user = req.headers.user;
 
-    if (!validProperty(username) || !validProperty(tweet)) {
+    if (!validProperty(user) || !validProperty(tweet)) {
         return res.status(400).send("Todos os campos são obrigatórios!");
     }
 
-    if (!usersArray.find(u => u.username === username)) {
+    if (!usersArray.find(u => u.username === user)) {
         return res.status(401).send("UNAUTHORIZED");
     }
 
-    tweetsArray.push({ username, tweet });
+    tweetsArray.push({ user, tweet });
     res.status(201).send("OK");
 });
 
