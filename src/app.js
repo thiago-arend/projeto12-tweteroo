@@ -7,23 +7,41 @@ app.use(cors());
 app.use(json());
 
 const usersArray = [];
-
 const tweetsArray = [];
+
+// valida se property é string
+function isString(str) {
+    return typeof str === "string";
+}
+
+// valida se property é válida (não nula, não indefinida e não vazia) && é string
+function validProperty(entry) {
+    return entry && isString(entry);
+}
 
 app.post("/sign-up", (req, res) => {
     const { username, avatar } = req.body;
-    usersArray.push({ username, avatar });
 
+    if (!validProperty(username) || !validProperty(avatar)) {
+        return res.status(400).send("Todos os campos são obrigatórios!");
+    }
+
+    usersArray.push({ username, avatar });
     res.status(201).send("OK");
 });
 
 app.post("/tweets", (req, res) => {
     const { username, tweet } = req.body;
+
+    if (!validProperty(username) || !validProperty(tweet)) {
+        return res.status(400).send("Todos os campos são obrigatórios!");
+    }
+
     if (!usersArray.find(u => u.username === username)) {
         return res.status(401).send("UNAUTHORIZED");
     }
-    tweetsArray.push({ username, tweet });
 
+    tweetsArray.push({ username, tweet });
     res.status(201).send("OK");
 });
 
