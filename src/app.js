@@ -19,6 +19,11 @@ function validProperty(entry) {
     return entry && isString(entry);
 }
 
+// valida se a query page é inteira e positiva
+function validPage(page) {
+    return Number.isInteger(page) && page > 0;
+}
+
 app.post("/sign-up", (req, res) => {
     const { username, avatar } = req.body;
 
@@ -46,19 +51,38 @@ app.post("/tweets", (req, res) => {
 });
 
 app.get("/tweets", (req, res) => {
-    const lastTweets = tweetsArray.slice(-10); // devolve vazio caso a lista esteja vazia
+    const page = req.query.page;
 
+    if (page === undefined) { // se a query não foi utilizada (undefined)
+        const lastTweets = tweetsArray.slice(-10); // devolve vazio caso a lista esteja vazia
+
+        let mergeArray = [];
+        lastTweets.forEach(t => {
+            const userObj = usersArray.find(u => u.username === t.username);
+            mergeArray.push({ ...userObj, ...t }); // o campo repetido (username) é sobreescrito
+        });
+
+        return res.send(mergeArray);
+    }
+
+    // se a query foi utilizada
+    if (!validPage(Number(page))) return res.status(400).send("Informe uma página válida!");
+
+    const leftIndex = tweetsArray.length - page * 10;
+    const rightIndex = tweetsArray.length - (page - 1) * 10;
+    const rangeTweets = tweetsArray.slice(leftIndex, rightIndex);
     let mergeArray = [];
-    lastTweets.forEach(t => {
+    rangeTweets.forEach(t => {
         const userObj = usersArray.find(u => u.username === t.username);
         mergeArray.push({ ...userObj, ...t }); // o campo repetido (username) é sobreescrito
     });
 
-    res.send(mergeArray);
+    return res.send(mergeArray);
+
 });
 
 app.get("/tweets/:USERNAME", (req, res) => {
-    const {USERNAME} = req.params;
+    const { USERNAME } = req.params;
     const userObj = usersArray.find(u => u.username === USERNAME);
     const filteredTweets = tweetsArray.filter(t => t.username === USERNAME);
 
