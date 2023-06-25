@@ -36,18 +36,18 @@ app.post("/sign-up", (req, res) => {
 });
 
 app.post("/tweets", (req, res) => {
-    const { tweet } = req.body;
-    const user = req.headers.user;
+    //const { username, tweet } = req.body;
+    const { username, tweet } = req.headers.user;
 
-    if (!validProperty(user) || !validProperty(tweet)) {
+    if (!validProperty(username) || !validProperty(tweet)) {
         return res.status(400).send("Todos os campos são obrigatórios!");
     }
 
-    if (!usersArray.find(u => u.username === user)) {
+    if (!usersArray.find(u => u.username === username)) {
         return res.status(401).send("UNAUTHORIZED");
     }
 
-    tweetsArray.push({ user, tweet });
+    tweetsArray.push({ username, tweet });
     res.status(201).send("OK");
 });
 
@@ -77,7 +77,7 @@ app.get("/tweets", (req, res) => {
         const userObj = usersArray.find(u => u.username === t.username);
         mergeArray.push({ ...userObj, ...t }); // o campo repetido (username) é sobreescrito
     });
-
+    
     return res.send(mergeArray);
 
 });
