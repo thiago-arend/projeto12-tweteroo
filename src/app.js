@@ -51,8 +51,19 @@ app.get("/tweets", (req, res) => {
     let mergeArray = [];
     lastTweets.forEach(t => {
         const userObj = usersArray.find(u => u.username === t.username);
-        mergeArray.push({ ...userObj, ...t, }); // o campo repetido (username) é sobreescrito
+        mergeArray.push({ ...userObj, ...t }); // o campo repetido (username) é sobreescrito
     });
+
+    res.send(mergeArray);
+});
+
+app.get("/tweets/:USERNAME", (req, res) => {
+    const {USERNAME} = req.params;
+    const userObj = usersArray.find(u => u.username === USERNAME);
+    const filteredTweets = tweetsArray.filter(t => t.username === USERNAME);
+
+    let mergeArray = [];
+    filteredTweets.forEach(t => mergeArray.push({ ...userObj, ...t }));
 
     res.send(mergeArray);
 });
