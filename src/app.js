@@ -24,6 +24,35 @@ function validPage(page) {
     return Number.isInteger(page) && page > 0;
 }
 
+// descobre os indices da paginação
+function splitIndex(array, n) {
+    let count = 0;
+    let start, end;
+
+    if ((n - 1) * 10 > array.length) return null;
+    if (array.length < 10) return { start: 0, end: array.length - 1 };
+
+    for (let i = array.length - 1; i >= 0; i--) {
+        count++;
+        if (count === 10) {
+            n--;
+            count = 0;
+            start = i;
+        }
+
+        if (n === 0) break;
+    }
+
+    end = start + 9;
+
+    if (start < 9 && n > 0) {
+        start = 0;
+        end -= 9;
+    }
+
+    return { start, end }
+}
+
 app.post("/sign-up", (req, res) => {
     const { username, avatar } = req.body;
 
@@ -36,7 +65,6 @@ app.post("/sign-up", (req, res) => {
 });
 
 app.post("/tweets", (req, res) => {
-    //const { username, tweet } = req.body;
     const tweet = req.body.tweet;
     const username = req.headers.user;
 
@@ -70,10 +98,9 @@ app.get("/tweets", (req, res) => {
     // se a query foi utilizada
     if (!validPage(Number(page))) return res.status(400).send("Informe uma página válida!");
 
-    const leftIndex = tweetsArray.length - page * 10;
-    const rightIndex = tweetsArray.length - (page - 1) * 10;
-    const rangeTweets = tweetsArray.slice(leftIndex, rightIndex);
     let mergeArray = [];
+    const {start, end} = splitIndex(tweetsArray, page);
+    const rangeTweets = tweetsArray.slice(start, end);
     rangeTweets.forEach(t => {
         const userObj = usersArray.find(u => u.username === t.username);
         mergeArray.push({ ...userObj, ...t }); // o campo repetido (username) é sobreescrito
