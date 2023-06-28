@@ -24,35 +24,6 @@ function validPage(page) {
     return Number.isInteger(page) && page > 0;
 }
 
-// descobre os indices da paginação
-function splitIndex(array, n) {
-    let count = 0;
-    let start, end;
-
-    if ((n - 1) * 10 > array.length) return null;
-    if (array.length < 10) return { start: 0, end: array.length - 1 };
-
-    for (let i = array.length - 1; i >= 0; i--) {
-        count++;
-        if (count === 10) {
-            n--;
-            count = 0;
-            start = i;
-        }
-
-        if (n === 0) break;
-    }
-
-    end = start + 9;
-
-    if (start < 9 && n > 0) {
-        start = 0;
-        end -= 9;
-    }
-
-    return { start, end }
-}
-
 app.post("/sign-up", (req, res) => {
     const { username, avatar } = req.body;
 
@@ -83,31 +54,29 @@ app.post("/tweets", (req, res) => {
 app.get("/tweets", (req, res) => {
     const page = req.query.page;
 
-    if (page === undefined) { // se a query não foi utilizada (undefined)
-        const lastTweets = tweetsArray.slice(-10); // devolve vazio caso a lista esteja vazia
+    // se existe query page e ela é invalida => erro
+    if (page && !validPage(Number(page))) return res.status(400).send("Informe uma página válida!");
 
-        let mergeArray = [];
-        lastTweets.forEach(t => {
-            const userObj = usersArray.find(u => u.username === t.username);
-            mergeArray.push({ ...userObj, ...t }); // o campo repetido (username) é sobreescrito
-        });
-
-        return res.send(mergeArray);
-    }
-
-    // se a query foi utilizada
-    if (!validPage(Number(page))) return res.status(400).send("Informe uma página válida!");
-
+    // aplica o merge para TODOS os tweets
     let mergeArray = [];
-    const {start, end} = splitIndex(tweetsArray, page);
-    const rangeTweets = tweetsArray.slice(start, end);
-    rangeTweets.forEach(t => {
+    tweetsArray.forEach(t => {
         const userObj = usersArray.find(u => u.username === t.username);
         mergeArray.push({ ...userObj, ...t }); // o campo repetido (username) é sobreescrito
     });
-    
-    return res.send(mergeArray);
 
+    // se query page existe, aplica filtro
+    if (page) {
+
+        const limit = 10;
+        const start = (page - 1) * limit;
+        const end = page * limit;
+
+        const pageTweets = mergeArray.reverse().slice(start, end);
+
+        return res.send(pageTweets);
+    }
+
+    res.send(mergeArray.slice(-10).reverse());
 });
 
 app.get("/tweets/:USERNAME", (req, res) => {
